@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Weather</string>
+    <string name="time">20:52</string>
+    <string name="city">San Jose</string>
+    <string name="temp">18°C</string>
+    <string name="delete">DEL</string>
+</resources>
