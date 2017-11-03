@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
@@ -20,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CityListController extends ListActivity {
+public class CityListActivity extends ListActivity {
     final String TAG = "Weather";
     public static final String KEY_CITY = "city";
     public static final String KEY_TIME = "time";
@@ -28,6 +29,7 @@ public class CityListController extends ListActivity {
 
     SimpleAdapter adapter;
     ArrayList<HashMap<String, String>> dataList;
+    Button settingButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +68,17 @@ public class CityListController extends ListActivity {
                 Log.i(TAG, "An error occurred: " + status);
             }
         });
+
+        settingButton = (Button) findViewById(R.id.setting);
+        settingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(TAG, "Setting button clicked");
+                Intent cityIntent = new Intent(CityListActivity.this, SettingActivity.class);
+                startActivity(cityIntent);
+            }
+        });
+
     }
 
     @Override

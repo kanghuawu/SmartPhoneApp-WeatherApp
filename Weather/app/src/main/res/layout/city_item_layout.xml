@@ -45,11 +45,4 @@
         android:textColor="@color/black"
         android:textSize="40sp"/>
 
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="wrap_content"
-        android:layout_height="76dp"
-        android:layout_weight="1"
-        android:text="@string/delete"
-        android:textSize="10sp"/>
 </LinearLayout>
