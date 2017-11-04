@@ -1,7 +1,10 @@
 package com.cmpe277.weather;
 
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -42,6 +45,13 @@ public class CityListActivity extends ListActivity {
     List<String> cityList;
     Button settingButton;
     Button editButton;
+    Button addHereButton;
+    LocationManager mLocationManager;
+    LocationListener mLocationListener;
+    String LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
+    final int REQUEST_CODE = 123;
+    final long MIN_TIME = 5000;
+    final float MIN_DISTANCE = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +117,18 @@ public class CityListActivity extends ListActivity {
                 isEditing = !isEditing;
             }
         });
+
+        addHereButton = (Button) findViewById(R.id.addHereButton);
+        addHereButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addCurrentLocation();
+            }
+        });
+    }
+
+    private void addCurrentLocation() {
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
     }
 
     private void restoreCityList() {

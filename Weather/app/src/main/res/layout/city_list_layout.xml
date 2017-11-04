@@ -34,6 +34,14 @@
             android:layout_width="wrap_content"
             android:layout_weight="1"
             android:text="@string/edit"/>
+
+        <Button
+            android:id="@+id/addHereButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/addHere"/>
+
         <Button
             android:id="@+id/setting"
             android:layout_height="match_parent"

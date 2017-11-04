@@ -10,9 +10,6 @@ import org.json.JSONObject;
 
 import cz.msebera.android.httpclient.Header;
 
-/**
- * Created by bondk on 11/3/17.
- */
 
 public class WeatherUpdater {
 
