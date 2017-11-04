@@ -10,21 +10,33 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".CityListActivity">
+        android:launchMode="singleTop">
+        <activity android:name=".CityListActivity"
+                  android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
+
+
+        <activity android:name=".SettingActivity"
+                  android:parentActivityName=".CityListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.cmpe277.weather.CityListActivity" />
+        </activity>
+
+        <activity android:name=".CitySwipeViewActivity"
+                  android:parentActivityName=".CityListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.cmpe277.weather.CityListActivity" />
+        </activity>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCqd2Lqzvf9raparg9v61t6GyxWL_aK3Mg"/>
-
-        <activity android:name=".SettingActivity">
-        </activity>
     </application>
 
 </manifest>

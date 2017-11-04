@@ -9,25 +9,37 @@
       android:paddingTop="@dimen/activity_vertical_margin"
       android:background="@drawable/weather_background" >
 
-
     <fragment
         android:id="@+id/place_autocomplete_fragment"
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
     <ListView
         android:id="@android:id/list"
         android:layout_width="fill_parent"
-        android:layout_height="491dp"
-        android:drawSelectorOnTop="false"/>
+        android:layout_height="0dp"
+        android:layout_weight="9"
+        android:drawSelectorOnTop="false">
+    </ListView>
 
-    <Button
-        android:id="@+id/setting"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:text="Setting"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/edit"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/edit"/>
+        <Button
+            android:id="@+id/setting"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_gravity="right"
+            android:layout_weight="1"
+            android:text="@string/setting"/>
+    </LinearLayout>
 </LinearLayout>

@@ -1,45 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/weather_background"
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="@drawable/weather_background" >
+    android:paddingTop="@dimen/activity_vertical_margin">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content"
+        android:layout_gravity="fill_horizontal"
+        android:text="@string/setting"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="40sp"/>
 
-        <Button
-            android:id="@+id/returnButton"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="left"
-            android:layout_weight="1"
-            android:text="Button"/>
 
-        <ToggleButton
-            android:id="@+id/toggleButton"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="right"
-            android:layout_weight="1"
+    <Button
+        android:id="@+id/returnButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:text="@string/returnHome"/>
+
+    <RadioGroup
+        android:id="@+id/tempGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true">
+
+        <RadioButton
+            android:id="@+id/radioFahrenheit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/white"
             android:checked="true"
-            android:text="ToggleButton"
-            android:textOff="@string/celsius"
-            android:textOn="@string/fahrenheit"
-            android:textSize="15sp"/>
-    </LinearLayout>
+            android:text="@string/fahrenheit"
+            android:textColor="@color/white"
+            android:textSize="30sp"/>
 
-    <ListView
-        android:id="@android:id/list"
-        android:layout_width="fill_parent"
-        android:layout_height="510dp"
-        android:drawSelectorOnTop="false"/>
-</LinearLayout>
+        <RadioButton
+            android:id="@+id/radioCelsius"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/white"
+            android:text="@string/celsius"
+            android:textColor="@color/white"
+            android:textSize="30sp"/>
+    </RadioGroup>
+
+</RelativeLayout>
