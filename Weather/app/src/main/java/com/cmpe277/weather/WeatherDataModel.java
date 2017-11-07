@@ -1,9 +1,12 @@
 package com.cmpe277.weather;
 
+import android.support.annotation.NonNull;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -11,7 +14,7 @@ import java.util.List;
  * Created by bondk on 11/3/17.
  */
 
-public class WeatherDataModel {
+public class WeatherDataModel implements Comparable<WeatherDataModel> {
 
     public static final String FAHRENHEIT_DEGREE = "°F";
     public static final String CELSIUS_DEGREE = "°C";
@@ -37,7 +40,7 @@ public class WeatherDataModel {
     private String mWeatherCondition;
     private List<WeatherDataModel> hourlyForecast;
     private List<WeatherDataModel> dailyForecast;
-//    private String mCurrentTime;
+    private Date mTime;
 
 //    public static List<WeatherDataModel> parseCityList(final String cityList) {
 //        final List<WeatherDataModel> list = new ArrayList<>();
@@ -52,45 +55,66 @@ public class WeatherDataModel {
      * @return
      */
     public static WeatherDataModel weatherFromJson(final JSONObject jsonObject) {
-        final WeatherDataModel model = new WeatherDataModel();
-        return weatherFromJson(jsonObject, model);
-    }
-
-    /**
-     * Parse weather data from json and update into existing model.
-     *
-     * @param jsonObject
-     * @param model
-     * @return
-     */
-    public static WeatherDataModel weatherFromJson(final JSONObject jsonObject, final WeatherDataModel model) {
+        WeatherDataModel model = new WeatherDataModel();
         try {
             model.mCity = jsonObject.getString("name");
-            Date dt = new Date((long)(jsonObject.getInt("dt") * 1000));
-            model.mDate = dt.toString();
+            model.mTime = new Date((long)(jsonObject.getInt("dt") * 1000));
+            model.mDate = model.mTime.toString();
             model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
             model.mCurrTemp = extractTemperature(jsonObject, "temp");
             model.mMinTemp = extractTemperature(jsonObject, "temp_min");
             model.mMaxTemp = extractTemperature(jsonObject, "temp_max");
-            return model;
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
+            model = null;
         }
+        return model;
+    }
+
+    public static WeatherDataModel hourlyWeatherElement(final JSONObject jsonObject) {
+        WeatherDataModel model = new WeatherDataModel();
+        try {
+            model.mTime = new Date((long)(jsonObject.getInt("dt") * 1000));
+            model.mDate = model.mTime.toString();
+            model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
+            model.mCurrTemp = extractTemperature(jsonObject, "temp");
+            model.mMinTemp = extractTemperature(jsonObject, "temp_min");
+            model.mMaxTemp = extractTemperature(jsonObject, "temp_max");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            model = null;
+        }
+        return model;
+    }
+
+    public static WeatherDataModel dailyWeatherElement(final JSONObject jsonObject) {
+        WeatherDataModel model = new WeatherDataModel();
+        try {
+            model.mTime = new Date((long)(jsonObject.getInt("dt") * 1000));
+            model.mDate = model.mTime.toString();
+            model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
+            model.mCurrTemp = extractTemperatureFromDailyElement(jsonObject, "day");
+            model.mMinTemp = extractTemperatureFromDailyElement(jsonObject, "min");
+            model.mMaxTemp = extractTemperatureFromDailyElement(jsonObject, "max");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            model = null;
+        }
+        return model;
     }
 
     /**
      * Parse hourly forecast data from json and update into existing model.
      *
      * @param jsonObject
-     * @param model
      * @return
      * @throws JSONException
      */
-    public static WeatherDataModel hourlyForecastFromJson(final JSONObject jsonObject, final WeatherDataModel model) throws JSONException {
+    public static WeatherDataModel hourlyForecastFromJson(final JSONObject jsonObject) throws JSONException {
+        final WeatherDataModel model = new WeatherDataModel();
         List<WeatherDataModel> list = model.getHourlyForecast();
         for(int i=0; i<jsonObject.getJSONArray("list").length(); i++) {
-            list.add(weatherFromJson(jsonObject.getJSONArray("list").getJSONObject(i)));
+            list.add(hourlyWeatherElement(jsonObject.getJSONArray("list").getJSONObject(i)));
         }
         return model;
     }
@@ -99,14 +123,14 @@ public class WeatherDataModel {
      * Parse daily forecast data from json and update into existing model.
      *
      * @param jsonObject
-     * @param model
      * @return
      * @throws JSONException
      */
-    public static WeatherDataModel dailyForecastFromJson(final JSONObject jsonObject, final WeatherDataModel model) throws JSONException {
+    public static WeatherDataModel dailyForecastFromJson(final JSONObject jsonObject) throws JSONException {
+        final WeatherDataModel model = new WeatherDataModel();
         List<WeatherDataModel> list = model.getDailyForecast();
         for(int i=0; i<jsonObject.getJSONArray("list").length(); i++) {
-            list.add(weatherFromJson(jsonObject.getJSONArray("list").getJSONObject(i)));
+            list.add(dailyWeatherElement(jsonObject.getJSONArray("list").getJSONObject(i)));
         }
         return model;
     }
@@ -165,10 +189,38 @@ public class WeatherDataModel {
         return (int) Math.rint(tempResult);
     }
 
+    private static int extractTemperatureFromDailyElement(JSONObject jsonObject, final String name) throws JSONException {
+        double tempResult = jsonObject.getJSONObject("temp").getDouble(name) - 273.15;
+        return (int) Math.rint(tempResult);
+    }
+
     private int celsiusToFahrenheit(int celsius) {
         return (int) Math.rint((celsius * 9 / 5.0) + 32);
     }
 
+    public Date getmTime() {
+        return mTime;
+    }
+
+    public String getFormattedTime() {
+        // TODO
+        return mTime.toString();
+    }
+
+    @Override
+    public int compareTo(@NonNull WeatherDataModel that) {
+        final Calendar timeOfThis = Calendar.getInstance();
+        timeOfThis.setTime(this.mTime);
+        final Calendar timeOfThat = Calendar.getInstance();
+        timeOfThat.setTime(that.getmTime());
+        if (timeOfThis.after(timeOfThat)) {
+            return 1;
+        } else if (timeOfThis.before(timeOfThat)) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
 
 
     public enum TemperatureType{

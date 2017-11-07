@@ -15,21 +15,21 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/cityName"
+                android:id="@+id/single_city_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Taipei"
                 android:textSize="30dp" />
 
             <TextView
-                android:id="@+id/weather"
+                android:id="@+id/single_city_weather"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Rainy"
                 android:textSize="15dp" />
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/single_city_temperature"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="19C"
@@ -101,9 +101,8 @@
         <ListView
             android:id="@+id/hourly_forecast_list"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:minHeight="50dp" >
-        </ListView>
+            android:layout_height="120dp"
+            android:minHeight="50dp"></ListView>
     </LinearLayout>
 
     <LinearLayout
@@ -125,9 +124,8 @@
         <ListView
             android:id="@+id/daily_forecast_list"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:minHeight="50dp" >
-        </ListView>
+            android:layout_height="120dp"
+            android:minHeight="50dp"></ListView>
 
     </LinearLayout>
 
