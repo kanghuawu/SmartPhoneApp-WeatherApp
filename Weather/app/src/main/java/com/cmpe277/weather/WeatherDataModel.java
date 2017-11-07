@@ -5,6 +5,10 @@ import android.support.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.FieldPosition;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -202,9 +206,19 @@ public class WeatherDataModel implements Comparable<WeatherDataModel> {
         return mTime;
     }
 
+    public String getFormattedWeekday() {
+        final SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
+        return sdf.format(mTime);
+    }
+
+    public String getFormattedShortDate() {
+        final SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd EEE");
+        return sdf.format(mTime);
+    }
+
     public String getFormattedTime() {
-        // TODO
-        return mTime.toString();
+        final SimpleDateFormat sdf = new SimpleDateFormat("h:mm a");
+        return sdf.format(mTime);
     }
 
     @Override

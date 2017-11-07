@@ -121,11 +121,16 @@ public class CitySwipeViewActivity extends FragmentActivity {
         public void updateUIForCurrentWeather(final WeatherDataModel weatherData, int position) {
             final TextView cityName = this.getView().findViewById(R.id.single_city_name);
             final TextView weather = this.getView().findViewById(R.id.single_city_weather);
+            final TextView date = this.getView().findViewById(R.id.single_city_date);
             final TextView temperature = this.getView().findViewById(R.id.single_city_temperature);
+            final TextView highestTemperature = this.getView().findViewById(R.id.single_city_highest_temperature);
+            final TextView lowestTemperature = this.getView().findViewById(R.id.single_city_lowest_temperature);
             cityName.setText(cityList.get(position));
             weather.setText(weatherData.getmWeatherCondition());
             temperature.setText(weatherData.getCurrentTemperature(Setting.getTemperatureType(this.getActivity())));
-
+            date.setText(weatherData.getFormattedShortDate());
+            highestTemperature.setText(weatherData.getHighestTemperature(Setting.getTemperatureType(this.getActivity())));
+            lowestTemperature.setText(weatherData.getLowestTemperature(Setting.getTemperatureType(this.getActivity())));
         }
 
         public void updateUIForHourlyForecast(final WeatherDataModel weatherData) {
@@ -147,7 +152,7 @@ public class CitySwipeViewActivity extends FragmentActivity {
             if (weatherData != null) {
                 for (final WeatherDataModel singleDay: weatherData.getDailyForecast()) {
                     final Map<String, String> data = new HashMap<>();
-                    data.put(KEY_DATE, singleDay.getFormattedTime());
+                    data.put(KEY_DATE, singleDay.getFormattedWeekday());
                     data.put(KEY_WEATHER, singleDay.getmWeatherCondition());
                     data.put(KEY_HIGHEST_TEMPERATURE, singleDay.getHighestTemperature(Setting.getTemperatureType(this.getActivity())));
                     data.put(KEY_LOWEST_TEMPERATURE, singleDay.getLowestTemperature(Setting.getTemperatureType(this.getActivity())));
