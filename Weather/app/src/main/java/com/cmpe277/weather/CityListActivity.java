@@ -20,6 +20,7 @@ import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.loopj.android.http.RequestParams;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,11 +48,11 @@ public class CityListActivity extends ListActivity {
     Button editButton;
     Button addHereButton;
     LocationManager mLocationManager;
-    LocationListener mLocationListener;
-    String LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
-    final int REQUEST_CODE = 123;
-    final long MIN_TIME = 5000;
-    final float MIN_DISTANCE = 1000;
+//    LocationListener mLocationListener;
+//    String LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
+//    final int REQUEST_CODE = 123;
+//    final long MIN_TIME = 5000;
+//    final float MIN_DISTANCE = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +72,6 @@ public class CityListActivity extends ListActivity {
         setUpAdaptors();
         adapter = ordinaryAdaptor;
         setListAdapter(adapter);
-//        initCityList();
         restoreCityList();
         updateCityData();
 
@@ -227,11 +227,8 @@ public class CityListActivity extends ListActivity {
     }
 
     private void updateCityData(int position) {
-        Map<String, Object> data = dataList.get(position);
-        String city = data.get(KEY_CITY).toString();
-        RequestParams params = new RequestParams();
-        params.put("q", city);
-        WeatherUpdater.updateCurrentWeatherForCityList(this, params, position);
+        final CityModel city = new CityModel(this, dataList.get(position).get(KEY_CITY).toString(), position);
+//        WeatherUpdater.updateCurrentWeatherForCityList(this, position, dataList.get(position).get(KEY_CITY).toString());
     }
 
     public void updateUI(WeatherDataModel weatherData, int position) {
@@ -243,9 +240,17 @@ public class CityListActivity extends ListActivity {
         }
     }
 
-    private void initCityList() {
-        addCity("Taipei");
-        addCity("Tokyo");
-        addCity("San Francisco");
+    public void updateUITime(final CityModel cityModel) {
+        Map<String, Object> data = dataList.get(cityModel.getPosition());
+        if (data != null) {
+            data.put(KEY_DATE, cityModel.getFormattedShortDate());
+            adapter.notifyDataSetChanged();
+        }
     }
+
+//    private void initCityList() {
+//        addCity("Taipei");
+//        addCity("Tokyo");
+//        addCity("San Francisco");
+//    }
 }

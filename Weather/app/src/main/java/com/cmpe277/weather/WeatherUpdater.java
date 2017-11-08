@@ -40,7 +40,7 @@ public class WeatherUpdater {
     private static final int DAILY_FORECAST_COUNT = 5;
 
 
-    public static void updateHourlyForecast(final CitySwipeViewActivity.SingleCityFragment city, final int position, final String cityName) {
+    public static void updateHourlyForecast(final CitySwipeViewActivity.SingleCityFragment city, final CityModel cityModel, final String cityName) {
         AsyncHttpClient client = new AsyncHttpClient();
         RequestParams params = new RequestParams();
         params.put(PARAM_CITY, cityName);
@@ -56,7 +56,7 @@ public class WeatherUpdater {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                city.updateUIForHourlyForecast(weatherData);
+                city.updateUIForHourlyForecast(cityModel, weatherData);
             }
 
             @Override
@@ -67,7 +67,7 @@ public class WeatherUpdater {
         });
     }
 
-    public static void updateDailyForecast(final CitySwipeViewActivity.SingleCityFragment city, final int position, final String cityName) {
+    public static void updateDailyForecast(final CitySwipeViewActivity.SingleCityFragment city, final CityModel cityModel, final String cityName) {
         AsyncHttpClient client = new AsyncHttpClient();
         RequestParams params = new RequestParams();
         params.put(PARAM_CITY, cityName);
@@ -83,7 +83,7 @@ public class WeatherUpdater {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            city.updateUIForDailyForecast(weatherData);
+            city.updateUIForDailyForecast(cityModel, weatherData);
         }
 
         @Override
@@ -95,7 +95,7 @@ public class WeatherUpdater {
 }
 
 
-    public static void updateCurrentWeatherForSingleCity(final CitySwipeViewActivity.SingleCityFragment city, final int position, final String cityName) {
+    public static void updateCurrentWeatherForSingleCity(final CityModel cityModel, final CitySwipeViewActivity.SingleCityFragment singleCityFragment, final int position, final String cityName) {
         AsyncHttpClient client = new AsyncHttpClient();
         RequestParams params = new RequestParams();
         params.put(PARAM_CITY, cityName);
@@ -105,7 +105,8 @@ public class WeatherUpdater {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.i("Weather App", "Success! JSON: " + response.toString());
                 WeatherDataModel weatherData = WeatherDataModel.weatherFromJson(response);
-                city.updateUIForCurrentWeather(weatherData, position);
+                singleCityFragment.updateUIForCurrentWeather(weatherData, position);
+                cityModel.updateLocalizedTime(singleCityFragment, weatherData.getmLatitude(), weatherData.getmLongitude());
             }
 
             @Override
@@ -116,8 +117,10 @@ public class WeatherUpdater {
         });
     }
 
-    public static void updateCurrentWeatherForCityList(final CityListActivity cityList, final RequestParams params, final int position) {
+    public static void updateCurrentWeatherForCityList(final CityModel cityModel, final CityListActivity cityList, final int position, final String cityName) {
         AsyncHttpClient client = new AsyncHttpClient();
+        RequestParams params = new RequestParams();
+        params.put(PARAM_CITY, cityName);
         params.put(PARAM_APPID, APP_ID);
         client.get(API_WEATHER, params, new JsonHttpResponseHandler() {
             @Override
@@ -125,6 +128,7 @@ public class WeatherUpdater {
                 Log.i("Weather App", "Success! JSON: " + response.toString());
                 WeatherDataModel weatherData = WeatherDataModel.weatherFromJson(response);
                 cityList.updateUI(weatherData, position);
+                cityModel.updateLocalizedTime(cityList, weatherData.getmLatitude(), weatherData.getmLongitude());
             }
 
             @Override

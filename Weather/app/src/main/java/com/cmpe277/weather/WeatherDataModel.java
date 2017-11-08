@@ -1,16 +1,9 @@
 package com.cmpe277.weather;
 
-import android.support.annotation.NonNull;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.FieldPosition;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -18,7 +11,7 @@ import java.util.List;
  * Created by bondk on 11/3/17.
  */
 
-public class WeatherDataModel implements Comparable<WeatherDataModel> {
+public class WeatherDataModel {
 
     public static final String FAHRENHEIT_DEGREE = "°F";
     public static final String CELSIUS_DEGREE = "°C";
@@ -44,13 +37,8 @@ public class WeatherDataModel implements Comparable<WeatherDataModel> {
     private String mWeatherCondition;
     private List<WeatherDataModel> hourlyForecast;
     private List<WeatherDataModel> dailyForecast;
-    private Date mTime;
-
-//    public static List<WeatherDataModel> parseCityList(final String cityList) {
-//        final List<WeatherDataModel> list = new ArrayList<>();
-//        cityList.split("")
-//        return list;
-//    }
+    private String mTime;
+    private String mLatitude, mLongitude;
 
     /**
      * Parse weather data from json object.
@@ -62,9 +50,11 @@ public class WeatherDataModel implements Comparable<WeatherDataModel> {
         WeatherDataModel model = new WeatherDataModel();
         try {
             model.mCity = jsonObject.getString("name");
-            model.mTime = new Date((long)(jsonObject.getInt("dt") * 1000));
-            model.mDate = model.mTime.toString();
+            model.mTime = jsonObject.getString("dt") + "000";
+            model.mDate = (new Date((long)(jsonObject.getInt("dt") * 1000))).toString();
             model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
+            model.mLongitude = jsonObject.getJSONObject("coord").getString("lon");
+            model.mLatitude = jsonObject.getJSONObject("coord").getString("lat");
             model.mCurrTemp = extractTemperature(jsonObject, "temp");
             model.mMinTemp = extractTemperature(jsonObject, "temp_min");
             model.mMaxTemp = extractTemperature(jsonObject, "temp_max");
@@ -78,8 +68,8 @@ public class WeatherDataModel implements Comparable<WeatherDataModel> {
     public static WeatherDataModel hourlyWeatherElement(final JSONObject jsonObject) {
         WeatherDataModel model = new WeatherDataModel();
         try {
-            model.mTime = new Date((long)(jsonObject.getInt("dt") * 1000));
-            model.mDate = model.mTime.toString();
+            model.mTime = jsonObject.getString("dt") + "000";
+            model.mDate = (new Date((long)(jsonObject.getInt("dt") * 1000))).toString();
             model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
             model.mCurrTemp = extractTemperature(jsonObject, "temp");
             model.mMinTemp = extractTemperature(jsonObject, "temp_min");
@@ -94,8 +84,8 @@ public class WeatherDataModel implements Comparable<WeatherDataModel> {
     public static WeatherDataModel dailyWeatherElement(final JSONObject jsonObject) {
         WeatherDataModel model = new WeatherDataModel();
         try {
-            model.mTime = new Date((long)(jsonObject.getInt("dt") * 1000));
-            model.mDate = model.mTime.toString();
+            model.mTime = jsonObject.getString("dt") + "000";
+            model.mDate = (new Date((long)(jsonObject.getInt("dt") * 1000))).toString();
             model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
             model.mCurrTemp = extractTemperatureFromDailyElement(jsonObject, "day");
             model.mMinTemp = extractTemperatureFromDailyElement(jsonObject, "min");
@@ -164,10 +154,6 @@ public class WeatherDataModel implements Comparable<WeatherDataModel> {
         return mMaxTemp + CELSIUS_DEGREE;
     }
 
-    public String getCity() {
-        return mCity;
-    }
-
     public String getmWeatherCondition() {
         return mWeatherCondition;
     }
@@ -202,40 +188,17 @@ public class WeatherDataModel implements Comparable<WeatherDataModel> {
         return (int) Math.rint((celsius * 9 / 5.0) + 32);
     }
 
-    public Date getmTime() {
+    public String getmTime() {
         return mTime;
     }
 
-    public String getFormattedWeekday() {
-        final SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
-        return sdf.format(mTime);
+    public String getmLatitude() {
+        return mLatitude;
     }
 
-    public String getFormattedShortDate() {
-        final SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd EEE");
-        return sdf.format(mTime);
+    public String getmLongitude() {
+        return mLongitude;
     }
-
-    public String getFormattedTime() {
-        final SimpleDateFormat sdf = new SimpleDateFormat("h:mm a");
-        return sdf.format(mTime);
-    }
-
-    @Override
-    public int compareTo(@NonNull WeatherDataModel that) {
-        final Calendar timeOfThis = Calendar.getInstance();
-        timeOfThis.setTime(this.mTime);
-        final Calendar timeOfThat = Calendar.getInstance();
-        timeOfThat.setTime(that.getmTime());
-        if (timeOfThis.after(timeOfThat)) {
-            return 1;
-        } else if (timeOfThis.before(timeOfThat)) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
-
 
     public enum TemperatureType{
         CELSIUS,

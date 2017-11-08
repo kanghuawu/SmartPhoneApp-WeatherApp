@@ -53,8 +53,6 @@ public class CitySwipeViewActivity extends FragmentActivity {
         final int position = cityListIntent.getIntExtra(CityListActivity.KEY_POSITION, 0);
         mViewPager.setCurrentItem(position);
         citySwipePagerAdapter.notifyDataSetChanged();
-
-
     }
 
 
@@ -86,7 +84,7 @@ public class CitySwipeViewActivity extends FragmentActivity {
 
     public static class SingleCityFragment extends Fragment {
 
-        private List<Map<String, String>> hourlyData, dailyData;
+        private CityModel cityModel;
         private SimpleAdapter hourlyAdapter, dailyAdapter;
 
         @Override
@@ -98,21 +96,16 @@ public class CitySwipeViewActivity extends FragmentActivity {
             ((TextView) rootView.findViewById(R.id.single_city_name)).setText(cityList.get(position));
 
             final String cityName = cityList.get(position);
-            WeatherUpdater.updateCurrentWeatherForSingleCity(this, position, cityName);
 
-            hourlyData = new ArrayList<>();
-            dailyData = new ArrayList<>();
+            cityModel = new CityModel(this, cityName, position);
             final ListView hourlyForecastListView = rootView.findViewById(R.id.hourly_forecast_list);
-            hourlyAdapter = new SimpleAdapter(this.getContext(), hourlyData, R.layout.forecast_element,
+            hourlyAdapter = new SimpleAdapter(this.getContext(), cityModel.getHourlyData(), R.layout.forecast_element,
                     KEY_DATA_ITEMS, KEY_LAYOUT_ITEMS);
             hourlyForecastListView.setAdapter(hourlyAdapter);
             final ListView dailyForecastListView = rootView.findViewById(R.id.daily_forecast_list);
-            dailyAdapter = new SimpleAdapter(this.getContext(), dailyData, R.layout.forecast_element,
+            dailyAdapter = new SimpleAdapter(this.getContext(), cityModel.getDailyData(), R.layout.forecast_element,
                     KEY_DATA_ITEMS, KEY_LAYOUT_ITEMS);
             dailyForecastListView.setAdapter(dailyAdapter);
-
-            WeatherUpdater.updateHourlyForecast(this, position, cityName);
-            WeatherUpdater.updateDailyForecast(this, position, cityName);
 
             return rootView;
         }
@@ -128,38 +121,43 @@ public class CitySwipeViewActivity extends FragmentActivity {
             cityName.setText(cityList.get(position));
             weather.setText(weatherData.getmWeatherCondition());
             temperature.setText(weatherData.getCurrentTemperature(Setting.getTemperatureType(this.getActivity())));
-            date.setText(weatherData.getFormattedShortDate());
+            date.setText("-");
             highestTemperature.setText(weatherData.getHighestTemperature(Setting.getTemperatureType(this.getActivity())));
             lowestTemperature.setText(weatherData.getLowestTemperature(Setting.getTemperatureType(this.getActivity())));
         }
 
-        public void updateUIForHourlyForecast(final WeatherDataModel weatherData) {
+        public void updateUIForHourlyForecast(final CityModel cityModel, final WeatherDataModel weatherData) {
             if (weatherData != null) {
                 for (final WeatherDataModel singleHour: weatherData.getHourlyForecast()) {
                     final Map<String, String> data = new HashMap<>();
-                    data.put(KEY_DATE, singleHour.getFormattedTime());
+                    data.put(KEY_DATE, cityModel.getFormattedTimeByTimestamp(singleHour.getmTime())); //singleHour.getFormattedTime());
                     data.put(KEY_WEATHER, singleHour.getmWeatherCondition());
                     data.put(KEY_HIGHEST_TEMPERATURE, singleHour.getHighestTemperature(Setting.getTemperatureType(this.getActivity())));
                     data.put(KEY_LOWEST_TEMPERATURE, singleHour.getLowestTemperature(Setting.getTemperatureType(this.getActivity())));
-                    hourlyData.add(data);
+                    cityModel.getHourlyData().add(data);
                 }
                 hourlyAdapter.notifyDataSetChanged();
             }
         }
 
 
-        public void updateUIForDailyForecast(final WeatherDataModel weatherData) {
+        public void updateUIForDailyForecast(final CityModel cityModel, final WeatherDataModel weatherData) {
             if (weatherData != null) {
                 for (final WeatherDataModel singleDay: weatherData.getDailyForecast()) {
                     final Map<String, String> data = new HashMap<>();
-                    data.put(KEY_DATE, singleDay.getFormattedWeekday());
+                    data.put(KEY_DATE, cityModel.getFormattedWeekdayByTimestamp(singleDay.getmTime()));
                     data.put(KEY_WEATHER, singleDay.getmWeatherCondition());
                     data.put(KEY_HIGHEST_TEMPERATURE, singleDay.getHighestTemperature(Setting.getTemperatureType(this.getActivity())));
                     data.put(KEY_LOWEST_TEMPERATURE, singleDay.getLowestTemperature(Setting.getTemperatureType(this.getActivity())));
-                    dailyData.add(data);
+                    cityModel.getDailyData().add(data);
                 }
                 dailyAdapter.notifyDataSetChanged();
             }
+        }
+
+        public void updateUICurrentTime(final CityModel cityModel) {
+            final TextView date = this.getView().findViewById(R.id.single_city_date);
+            date.setText(cityModel.getFormattedShortDate());
         }
     }
 
