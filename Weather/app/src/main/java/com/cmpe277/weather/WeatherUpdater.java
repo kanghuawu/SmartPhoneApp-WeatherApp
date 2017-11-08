@@ -1,6 +1,5 @@
 package com.cmpe277.weather;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -92,7 +91,7 @@ public class WeatherUpdater {
 }
 
 
-    public static void updateCurrentWeatherForSingleCity(final CityModel cityModel, final CitySwipeViewActivity.SingleCityFragment singleCityFragment, final int position, final RequestParams params) {
+    public static void updateCurrentWeatherForSingleCity(final CityController controller, final CitySwipeViewActivity.SingleCityFragment singleCityFragment, final int position, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
         client.get(API_WEATHER, params, new JsonHttpResponseHandler() {
             @Override
@@ -100,7 +99,8 @@ public class WeatherUpdater {
                 Log.i("Weather App", "Success! JSON: " + response.toString());
                 WeatherDataModel weatherData = WeatherDataModel.weatherFromJson(response);
                 singleCityFragment.updateUIForCurrentWeather(weatherData, position);
-                cityModel.updateLocalizedTime(singleCityFragment, weatherData.getmLatitude(), weatherData.getmLongitude());
+                controller.getCityModel().setLatAndLon(weatherData.getmLatitude(), weatherData.getmLongitude());
+                controller.executeNext();
             }
 
             @Override
@@ -111,7 +111,7 @@ public class WeatherUpdater {
         });
     }
 
-    public static void updateCurrentWeatherForCityList(final CityModel cityModel, final CityListActivity cityList, final int position, final RequestParams params) {
+    public static void updateCurrentWeatherForCityList(final CityController controller, final CityListActivity cityList, final int position, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
         client.get(API_WEATHER, params, new JsonHttpResponseHandler() {
             @Override
@@ -119,7 +119,8 @@ public class WeatherUpdater {
                 Log.i("Weather App", "Success! JSON: " + response.toString());
                 WeatherDataModel weatherData = WeatherDataModel.weatherFromJson(response);
                 cityList.updateUI(weatherData, position);
-                cityModel.updateLocalizedTime(cityList, weatherData.getmLatitude(), weatherData.getmLongitude());
+                controller.getCityModel().setLatAndLon(weatherData.getmLatitude(), weatherData.getmLongitude());
+                controller.executeNext();
             }
 
             @Override
@@ -137,11 +138,11 @@ public class WeatherUpdater {
         return params;
     }
 
-    public static RequestParams byParamsLocation(String latitude, String longitude) {
-        RequestParams params = new RequestParams();
-        params.put(PARAM_LAT, latitude);
-        params.put(PARAM_LON, longitude);
-        params.put(PARAM_APPID, APP_ID);
-        return params;
-    }
+//    public static RequestParams byParamsLocation(String latitude, String longitude) {
+//        RequestParams params = new RequestParams();
+//        params.put(PARAM_LAT, latitude);
+//        params.put(PARAM_LON, longitude);
+//        params.put(PARAM_APPID, APP_ID);
+//        return params;
+//    }
 }

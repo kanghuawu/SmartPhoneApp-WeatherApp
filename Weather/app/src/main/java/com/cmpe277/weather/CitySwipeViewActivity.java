@@ -15,9 +15,12 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.cmpe277.weather.task.TaskType;
+import com.cmpe277.weather.task.UpdateCurrentWeatherTask;
+import com.cmpe277.weather.task.UpdateForecastTask;
+import com.cmpe277.weather.task.UpdateLocalizedTimeTask;
+
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -100,7 +103,13 @@ public class CitySwipeViewActivity extends FragmentActivity {
 
             final String cityName = cityList.get(position);
 
-            cityModel = new CityModel(this, cityName, position);
+            cityModel = new CityModel(cityName, position);
+            final CityController controller = new CityController(cityModel, this);
+            controller.addTask(new UpdateCurrentWeatherTask(controller, TaskType.CITY_VIEW));
+            controller.addTask(new UpdateLocalizedTimeTask(controller, TaskType.CITY_VIEW));
+            controller.addTask(new UpdateForecastTask(controller, TaskType.CITY_VIEW));
+            controller.executeNext();
+
             final ListView hourlyForecastListView = rootView.findViewById(R.id.hourly_forecast_list);
             hourlyAdapter = new SimpleAdapter(this.getContext(), cityModel.getHourlyData(), R.layout.forecast_element,
                     KEY_DATA_ITEMS, KEY_LAYOUT_ITEMS);

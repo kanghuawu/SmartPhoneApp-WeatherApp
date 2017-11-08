@@ -17,14 +17,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import com.cmpe277.weather.task.TaskType;
+import com.cmpe277.weather.task.UpdateCurrentWeatherTask;
+import com.cmpe277.weather.task.UpdateLocalizedTimeTask;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.loopj.android.http.RequestParams;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -170,13 +171,6 @@ public class CityListActivity extends ListActivity {
             }
         };
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             ActivityCompat.requestPermissions(this,
                     new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
             return;
@@ -281,14 +275,18 @@ public class CityListActivity extends ListActivity {
 
     private void updateCityData(int position) {
         final String cityName = dataList.get(position).get(KEY_CITY).toString();
-        new CityModel(this, cityName, position);
+        CityModel cityModel = new CityModel(cityName, position);
+        final CityController controller = new CityController(cityModel, this);
+        controller.addTask(new UpdateCurrentWeatherTask(controller, TaskType.CITY_LIST));
+        controller.addTask(new UpdateLocalizedTimeTask(controller, TaskType.CITY_LIST));
+        controller.executeNext();
     }
 
     public void updateUI(WeatherDataModel weatherData, int position) {
         Map<String, Object> data = dataList.get(position);
         if (data != null) {
             data.put(KEY_TEMPERATURE, weatherData.getCurrentTemperature(Setting.getTemperatureType(this)));
-            data.put(KEY_DATE, "-"/*weatherData.getDate()*/);
+            data.put(KEY_DATE, "-");
             adapter.notifyDataSetChanged();
         }
     }
@@ -301,9 +299,4 @@ public class CityListActivity extends ListActivity {
         }
     }
 
-//    private void initCityList() {
-//        addCity("Taipei");
-//        addCity("Tokyo");
-//        addCity("San Francisco");
-//    }
 }

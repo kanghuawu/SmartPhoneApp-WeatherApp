@@ -10,7 +10,7 @@ import java.util.TimeZone;
 
 public class CityModel implements Serializable {
 
-    private static final int REFRESH_TIMEOUT_IN_SEC = 10;
+    private static final int REFRESH_TIMEOUT_IN_SECOND = 10;
 
     private String cityName;
     private int position;
@@ -22,64 +22,17 @@ public class CityModel implements Serializable {
     private TimeZone timeZone;
 
 
-    public CityModel(final CitySwipeViewActivity.SingleCityFragment fragment, final String cityName, int position) {
+    public CityModel(final String cityName, int position) {
         this.cityName = cityName;
         this.position = position;
-
-        executeChain(fragment);
     }
 
-    public CityModel(final CityListActivity cityListActivity, final String cityName, int position) {
-        this.cityName = cityName;
-        this.position = position;
-
-        executeChain(cityListActivity);
-    }
-
-//    public CityModel(final CityListActivity cityListActivity, String latitude, String longitude) {
-//        this.latitude = latitude;
-//        this.longitude = longitude;
-//
-//        WeatherUpdater.updateCurrentWeatherForCityList(this, cityListActivity, position, WeatherUpdater.byParamsLocation(latitude, longitude));
-//    }
-
-    public void executeChain(final CityListActivity cityListActivity) {
-        if (needToRefresh()) {
-            refreshCurrentTimestamp();
-            // Chain 1.A
-            WeatherUpdater.updateCurrentWeatherForCityList(this, cityListActivity, position, WeatherUpdater.byParamsCityName(cityName));
-        }
-    }
-
-    public void executeChain(final CitySwipeViewActivity.SingleCityFragment fragment) {
-        if (needToRefresh()) {
-            refreshCurrentTimestamp();
-            // Chain 1.B
-            WeatherUpdater.updateCurrentWeatherForSingleCity(this, fragment, position, WeatherUpdater.byParamsCityName(cityName));
-        }
-    }
-
-    public void updateLocalizedTime(final CityListActivity cityList, final String lat, final String lon) {
-        refreshCurrentTimestamp();
-        setLatAndLon(lat, lon);
-        // Chain 2.A
-        LocalizedTimeUpdater.updateDateByLocationForCityList(cityList, this, LocalizedTimeUpdater.byParams(this, currentTimestamp + ""));
-    }
-
-
-    public void updateLocalizedTime(final CitySwipeViewActivity.SingleCityFragment fragment, final String lat, final String lon) {
-        refreshCurrentTimestamp();
-        setLatAndLon(lat, lon);
-        // Chain 2.B
-        LocalizedTimeUpdater.updateDateByLocationForCityView(fragment, this, LocalizedTimeUpdater.byParams(this, currentTimestamp + ""));
-    }
-
-    private void refreshCurrentTimestamp() {
+    public void refreshCurrentTimestamp() {
         currentTimestamp = System.currentTimeMillis();
     }
 
-    private boolean needToRefresh() {
-        return currentTimestamp == -1 || (currentTimestamp - (System.currentTimeMillis())) > REFRESH_TIMEOUT_IN_SEC;
+    public boolean needToRefresh() {
+        return currentTimestamp == -1 || (currentTimestamp - (System.currentTimeMillis())) > REFRESH_TIMEOUT_IN_SECOND;
     }
 
     public Date getCurrentDate() {
@@ -94,7 +47,7 @@ public class CityModel implements Serializable {
         return dailyData;
     }
 
-    private void setLatAndLon(String lat, String lon) {
+    public void setLatAndLon(String lat, String lon) {
         this.latitude = lat;
         this.longitude = lon;
     }
@@ -111,13 +64,8 @@ public class CityModel implements Serializable {
         return position;
     }
 
-    public TimeZone getTimeZone() {
-        return timeZone;
-    }
-
-    public void updateForecast(final CitySwipeViewActivity.SingleCityFragment fragment) {
-        WeatherUpdater.updateHourlyForecast(fragment, this, WeatherUpdater.byParamsCityName(cityName));
-        WeatherUpdater.updateDailyForecast(fragment, this, WeatherUpdater.byParamsCityName(cityName));
+    public String getCityName() {
+        return cityName;
     }
 
     public String getFormattedTimeByTimestamp(final String timestamp) {
@@ -141,14 +89,11 @@ public class CityModel implements Serializable {
         return str;
     }
 
-    public void updateTimezone(final CityListActivity cityListActivity, final String timeZoneId) {
-        timeZone = TimeZone.getTimeZone(timeZoneId);
-        cityListActivity.updateUITime(this);
+    public void setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
     }
 
-    public void updateTimezone(final CitySwipeViewActivity.SingleCityFragment fragment, final String timeZoneId) {
-        timeZone = TimeZone.getTimeZone(timeZoneId);
-        fragment.updateUICurrentTime(this);
+    public long getCurrentTimestamp() {
+        return currentTimestamp;
     }
-
 }
