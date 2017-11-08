@@ -1,5 +1,6 @@
 package com.cmpe277.weather;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -32,6 +33,8 @@ public class WeatherUpdater {
     public static final String PARAM_APPID = "appid";
     public static final String PARAM_COUNT = "cnt";
     public static final String PARAM_CITY = "q";
+    public static final String PARAM_LAT = "lat";
+    public static final String PARAM_LON = "lon";
 
     /**
      * OpenWeather API forecast count we needed
@@ -40,11 +43,8 @@ public class WeatherUpdater {
     private static final int DAILY_FORECAST_COUNT = 5;
 
 
-    public static void updateHourlyForecast(final CitySwipeViewActivity.SingleCityFragment city, final CityModel cityModel, final String cityName) {
+    public static void updateHourlyForecast(final CitySwipeViewActivity.SingleCityFragment city, final CityModel cityModel, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        params.put(PARAM_CITY, cityName);
-        params.put(PARAM_APPID, APP_ID);
         params.put(PARAM_COUNT, HOURLY_FORECAST_COUNT);
         client.get(API_FORECAST_HOURLY, params, new JsonHttpResponseHandler() {
             @Override
@@ -53,10 +53,10 @@ public class WeatherUpdater {
                 WeatherDataModel weatherData = null;
                 try {
                     weatherData = WeatherDataModel.hourlyForecastFromJson(response);
+                    city.updateUIForHourlyForecast(cityModel, weatherData);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                city.updateUIForHourlyForecast(cityModel, weatherData);
             }
 
             @Override
@@ -67,11 +67,8 @@ public class WeatherUpdater {
         });
     }
 
-    public static void updateDailyForecast(final CitySwipeViewActivity.SingleCityFragment city, final CityModel cityModel, final String cityName) {
+    public static void updateDailyForecast(final CitySwipeViewActivity.SingleCityFragment city, final CityModel cityModel, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        params.put(PARAM_CITY, cityName);
-        params.put(PARAM_APPID, APP_ID);
         params.put(PARAM_COUNT, DAILY_FORECAST_COUNT);
         client.get(API_FORECAST_DAILY, params, new JsonHttpResponseHandler() {
         @Override
@@ -80,10 +77,10 @@ public class WeatherUpdater {
             WeatherDataModel weatherData = null;
             try {
                 weatherData = WeatherDataModel.dailyForecastFromJson(response);
+                city.updateUIForDailyForecast(cityModel, weatherData);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            city.updateUIForDailyForecast(cityModel, weatherData);
         }
 
         @Override
@@ -95,11 +92,8 @@ public class WeatherUpdater {
 }
 
 
-    public static void updateCurrentWeatherForSingleCity(final CityModel cityModel, final CitySwipeViewActivity.SingleCityFragment singleCityFragment, final int position, final String cityName) {
+    public static void updateCurrentWeatherForSingleCity(final CityModel cityModel, final CitySwipeViewActivity.SingleCityFragment singleCityFragment, final int position, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        params.put(PARAM_CITY, cityName);
-        params.put(PARAM_APPID, APP_ID);
         client.get(API_WEATHER, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
@@ -117,11 +111,8 @@ public class WeatherUpdater {
         });
     }
 
-    public static void updateCurrentWeatherForCityList(final CityModel cityModel, final CityListActivity cityList, final int position, final String cityName) {
+    public static void updateCurrentWeatherForCityList(final CityModel cityModel, final CityListActivity cityList, final int position, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        params.put(PARAM_CITY, cityName);
-        params.put(PARAM_APPID, APP_ID);
         client.get(API_WEATHER, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
@@ -135,9 +126,22 @@ public class WeatherUpdater {
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 Log.e("Weather App", "Fail " + throwable.toString());
                 Log.e("Weather App", "Status code " + statusCode);
-//                Toast.makeText(weatherController, "Request Failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    public static RequestParams byParamsCityName(String cityName) {
+        RequestParams params = new RequestParams();
+        params.put(PARAM_CITY, cityName);
+        params.put(PARAM_APPID, APP_ID);
+        return params;
+    }
+
+    public static RequestParams byParamsLocation(String latitude, String longitude) {
+        RequestParams params = new RequestParams();
+        params.put(PARAM_LAT, latitude);
+        params.put(PARAM_LON, longitude);
+        params.put(PARAM_APPID, APP_ID);
+        return params;
+    }
 }

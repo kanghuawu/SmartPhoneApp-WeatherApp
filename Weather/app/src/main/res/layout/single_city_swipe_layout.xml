@@ -101,7 +101,7 @@
         <ListView
             android:id="@+id/hourly_forecast_list"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="160dp"
             android:minHeight="50dp"></ListView>
     </LinearLayout>
 

@@ -33,7 +33,7 @@ public class WeatherDataModel {
 
     private int mCurrTemp, mMinTemp, mMaxTemp;
     private String mCity;
-    private String mDate;
+    private Date mDate;
     private String mWeatherCondition;
     private List<WeatherDataModel> hourlyForecast;
     private List<WeatherDataModel> dailyForecast;
@@ -51,7 +51,7 @@ public class WeatherDataModel {
         try {
             model.mCity = jsonObject.getString("name");
             model.mTime = jsonObject.getString("dt") + "000";
-            model.mDate = (new Date((long)(jsonObject.getInt("dt") * 1000))).toString();
+            model.mDate = new Date(Long.valueOf(model.mTime));
             model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
             model.mLongitude = jsonObject.getJSONObject("coord").getString("lon");
             model.mLatitude = jsonObject.getJSONObject("coord").getString("lat");
@@ -69,7 +69,7 @@ public class WeatherDataModel {
         WeatherDataModel model = new WeatherDataModel();
         try {
             model.mTime = jsonObject.getString("dt") + "000";
-            model.mDate = (new Date((long)(jsonObject.getInt("dt") * 1000))).toString();
+            model.mDate = new Date(Long.valueOf(model.mTime));
             model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
             model.mCurrTemp = extractTemperature(jsonObject, "temp");
             model.mMinTemp = extractTemperature(jsonObject, "temp_min");
@@ -85,7 +85,7 @@ public class WeatherDataModel {
         WeatherDataModel model = new WeatherDataModel();
         try {
             model.mTime = jsonObject.getString("dt") + "000";
-            model.mDate = (new Date((long)(jsonObject.getInt("dt") * 1000))).toString();
+            model.mDate = new Date(Long.valueOf(model.mTime));
             model.mWeatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
             model.mCurrTemp = extractTemperatureFromDailyElement(jsonObject, "day");
             model.mMinTemp = extractTemperatureFromDailyElement(jsonObject, "min");
@@ -129,7 +129,7 @@ public class WeatherDataModel {
         return model;
     }
 
-    public  String getDate() {
+    public Date getDate() {
         return mDate;
     }
 

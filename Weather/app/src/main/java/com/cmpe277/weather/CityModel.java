@@ -14,9 +14,9 @@ public class CityModel implements Serializable {
 
     private String cityName;
     private int position;
-    private WeatherDataModel currentWeather;
-    private List<Map<String, String>> hourlyData;
-    private List<Map<String, String>> dailyData;
+//    private WeatherDataModel currentWeather;
+    private List<Map<String, String>> hourlyData= new ArrayList<>();
+    private List<Map<String, String>> dailyData= new ArrayList<>();
     private long currentTimestamp = -1;
     private String latitude, longitude;
     private TimeZone timeZone;
@@ -25,51 +25,53 @@ public class CityModel implements Serializable {
     public CityModel(final CitySwipeViewActivity.SingleCityFragment fragment, final String cityName, int position) {
         this.cityName = cityName;
         this.position = position;
-        hourlyData = new ArrayList<>();
-        dailyData = new ArrayList<>();
 
-        startUpdateChainForCityView(fragment);
+        executeChain(fragment);
     }
 
     public CityModel(final CityListActivity cityListActivity, final String cityName, int position) {
         this.cityName = cityName;
         this.position = position;
-        hourlyData = new ArrayList<>();
-        dailyData = new ArrayList<>();
 
-        startUpdateChainForCityList(cityListActivity);
+        executeChain(cityListActivity);
     }
 
-    public void startUpdateChainForCityList(final CityListActivity cityListActivity) {
+//    public CityModel(final CityListActivity cityListActivity, String latitude, String longitude) {
+//        this.latitude = latitude;
+//        this.longitude = longitude;
+//
+//        WeatherUpdater.updateCurrentWeatherForCityList(this, cityListActivity, position, WeatherUpdater.byParamsLocation(latitude, longitude));
+//    }
+
+    public void executeChain(final CityListActivity cityListActivity) {
         if (needToRefresh()) {
             refreshCurrentTimestamp();
             // Chain 1.A
-            WeatherUpdater.updateCurrentWeatherForCityList(this, cityListActivity, position, cityName);
+            WeatherUpdater.updateCurrentWeatherForCityList(this, cityListActivity, position, WeatherUpdater.byParamsCityName(cityName));
         }
     }
 
-    public void startUpdateChainForCityView(final CitySwipeViewActivity.SingleCityFragment fragment) {
+    public void executeChain(final CitySwipeViewActivity.SingleCityFragment fragment) {
         if (needToRefresh()) {
             refreshCurrentTimestamp();
             // Chain 1.B
-            WeatherUpdater.updateCurrentWeatherForSingleCity(this, fragment, position, cityName);
+            WeatherUpdater.updateCurrentWeatherForSingleCity(this, fragment, position, WeatherUpdater.byParamsCityName(cityName));
         }
     }
 
     public void updateLocalizedTime(final CityListActivity cityList, final String lat, final String lon) {
         refreshCurrentTimestamp();
-        this.latitude = lat;
-        this.longitude = lon;
+        setLatAndLon(lat, lon);
         // Chain 2.A
-        LocalizedTimeUpdater.updateDateByLocationForCityList(cityList, this, currentTimestamp + "");
+        LocalizedTimeUpdater.updateDateByLocationForCityList(cityList, this, LocalizedTimeUpdater.byParams(this, currentTimestamp + ""));
     }
+
 
     public void updateLocalizedTime(final CitySwipeViewActivity.SingleCityFragment fragment, final String lat, final String lon) {
         refreshCurrentTimestamp();
-        this.latitude = lat;
-        this.longitude = lon;
+        setLatAndLon(lat, lon);
         // Chain 2.B
-        LocalizedTimeUpdater.updateDateByLocationForCityView(fragment, this, currentTimestamp + "");
+        LocalizedTimeUpdater.updateDateByLocationForCityView(fragment, this, LocalizedTimeUpdater.byParams(this, currentTimestamp + ""));
     }
 
     private void refreshCurrentTimestamp() {
@@ -80,12 +82,21 @@ public class CityModel implements Serializable {
         return currentTimestamp == -1 || (currentTimestamp - (System.currentTimeMillis())) > REFRESH_TIMEOUT_IN_SEC;
     }
 
+    public Date getCurrentDate() {
+        return new Date(currentTimestamp);
+    }
+
     public List<Map<String, String>> getHourlyData() {
         return hourlyData;
     }
 
     public List<Map<String, String>> getDailyData() {
         return dailyData;
+    }
+
+    private void setLatAndLon(String lat, String lon) {
+        this.latitude = lat;
+        this.longitude = lon;
     }
 
     public String getLatitude() {
@@ -105,8 +116,8 @@ public class CityModel implements Serializable {
     }
 
     public void updateForecast(final CitySwipeViewActivity.SingleCityFragment fragment) {
-        WeatherUpdater.updateHourlyForecast(fragment, this, cityName);
-        WeatherUpdater.updateDailyForecast(fragment, this, cityName);
+        WeatherUpdater.updateHourlyForecast(fragment, this, WeatherUpdater.byParamsCityName(cityName));
+        WeatherUpdater.updateDailyForecast(fragment, this, WeatherUpdater.byParamsCityName(cityName));
     }
 
     public String getFormattedTimeByTimestamp(final String timestamp) {
@@ -124,7 +135,7 @@ public class CityModel implements Serializable {
     }
 
     public String getFormattedShortDate() {
-        final SimpleDateFormat sdf = new SimpleDateFormat("EEEE MMM dd");
+        final SimpleDateFormat sdf = new SimpleDateFormat("EEEE MMM dd HH:mm");
         sdf.setTimeZone(timeZone);
         String str = sdf.format(new Date(Long.valueOf(currentTimestamp)));
         return str;

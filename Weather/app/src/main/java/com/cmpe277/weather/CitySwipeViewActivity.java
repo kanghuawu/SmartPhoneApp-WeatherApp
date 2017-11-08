@@ -15,7 +15,10 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +147,9 @@ public class CitySwipeViewActivity extends FragmentActivity {
         public void updateUIForDailyForecast(final CityModel cityModel, final WeatherDataModel weatherData) {
             if (weatherData != null) {
                 for (final WeatherDataModel singleDay: weatherData.getDailyForecast()) {
+                    if (isSameDay(cityModel, singleDay.getDate())) {
+                        continue;
+                    }
                     final Map<String, String> data = new HashMap<>();
                     data.put(KEY_DATE, cityModel.getFormattedWeekdayByTimestamp(singleDay.getmTime()));
                     data.put(KEY_WEATHER, singleDay.getmWeatherCondition());
@@ -153,6 +159,13 @@ public class CitySwipeViewActivity extends FragmentActivity {
                 }
                 dailyAdapter.notifyDataSetChanged();
             }
+        }
+
+        private boolean isSameDay(CityModel cityModel, Date date) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            String cityDate = simpleDateFormat.format(cityModel.getCurrentDate());
+            String otherDate = simpleDateFormat.format(date);
+            return cityDate.equals(otherDate);
         }
 
         public void updateUICurrentTime(final CityModel cityModel) {

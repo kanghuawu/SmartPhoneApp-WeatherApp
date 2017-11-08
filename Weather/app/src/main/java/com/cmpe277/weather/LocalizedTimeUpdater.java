@@ -1,5 +1,6 @@
 package com.cmpe277.weather;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -26,12 +27,25 @@ public class LocalizedTimeUpdater {
 
     private static final String GOOGLE_TIMEZONE_API_KEY = "AIzaSyCt91scA2ZQvnerbpmS6M3uBwTuGiQB9iE";
 
-    public static void updateDateByLocationForCityList(final CityListActivity cityListActivity, final CityModel cityModel, final String timestamp) {
-        AsyncHttpClient client = new AsyncHttpClient();
+
+    public static RequestParams byParams(final CityModel cityModel, final String timestamp) {
         RequestParams params = new RequestParams();
         params.put(PARAM_API_KEY, GOOGLE_TIMEZONE_API_KEY);
         params.put(PARAM_LOCATION, cityModel.getLatitude() + "," + cityModel.getLongitude());
         params.put(PARAM_TIMESTAMP, timestamp.substring(0, timestamp.length()-3));
+        return params;
+    }
+
+    public static RequestParams byParams(String latitude, String longitude, String timestamp) {
+        RequestParams params = new RequestParams();
+        params.put(PARAM_API_KEY, GOOGLE_TIMEZONE_API_KEY);
+        params.put(PARAM_LOCATION, latitude + "," + longitude);
+        params.put(PARAM_TIMESTAMP, timestamp.substring(0, timestamp.length()-3));
+        return params;
+    }
+
+    public static void updateDateByLocationForCityList(final CityListActivity cityListActivity, final CityModel cityModel, final RequestParams params) {
+        AsyncHttpClient client = new AsyncHttpClient();
         client.get(API_GOOGLE_TIMEZONE, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
@@ -52,12 +66,9 @@ public class LocalizedTimeUpdater {
         });
     }
 
-    public static void updateDateByLocationForCityView(final CitySwipeViewActivity.SingleCityFragment singleCityFragment, final CityModel cityModel, final String timestamp) {
+
+    public static void updateDateByLocationForCityView(final CitySwipeViewActivity.SingleCityFragment singleCityFragment, final CityModel cityModel, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        params.put(PARAM_API_KEY, GOOGLE_TIMEZONE_API_KEY);
-        params.put(PARAM_LOCATION, cityModel.getLatitude() + "," + cityModel.getLongitude());
-        params.put(PARAM_TIMESTAMP, timestamp.substring(0, timestamp.length()-3));
         client.get(API_GOOGLE_TIMEZONE, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {

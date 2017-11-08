@@ -1,11 +1,15 @@
 package com.cmpe277.weather;
 
+import android.Manifest;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,11 +52,11 @@ public class CityListActivity extends ListActivity {
     Button editButton;
     Button addHereButton;
     LocationManager mLocationManager;
-//    LocationListener mLocationListener;
-//    String LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
-//    final int REQUEST_CODE = 123;
-//    final long MIN_TIME = 5000;
-//    final float MIN_DISTANCE = 1000;
+    LocationListener mLocationListener;
+    String LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
+    final int REQUEST_CODE = 123;
+    final long MIN_TIME = 5000;
+    final float MIN_DISTANCE = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,6 +133,55 @@ public class CityListActivity extends ListActivity {
 
     private void addCurrentLocation() {
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mLocationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                Log.d("Weather App", "onLocationChanged(): callback received!");
+                String longitude = String.valueOf(location.getLongitude());
+                String latitude = String.valueOf(location.getLatitude());
+                Log.d("Weather App", "longitude is " + longitude);
+                Log.d("Weather App", "latitude is " + latitude);
+
+//                addCityByLocation(latitude, longitude);
+//                new CityModel(this, latitude, longitude);
+
+//                RequestParams params = new RequestParams();
+//                params.put("lat", latitude);
+//                params.put("lon", longitude);
+//                params.put("appid", WeatherUpdater.APP_ID);
+//                WeatherUpdater.updateCurrentWeather(WeatherController.this, params);
+//                WeatherUpdater.updateHourlyForecast(WeatherController.this, params);
+//                WeatherUpdater.updateDailyForecast(WeatherController.this, params);
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                Log.d("Weather App", "onStatusChanged(): callback received!");
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+                Log.d("Weather App", "onProviderEnabled(): callback received!");
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+                Log.d("Weather App", "onProviderDisabled(): callback received!");
+            }
+        };
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this,
+                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+            return;
+        }
+        mLocationManager.requestLocationUpdates(LOCATION_PROVIDER, MIN_TIME, MIN_DISTANCE, mLocationListener);
     }
 
     private void restoreCityList() {
@@ -227,15 +280,15 @@ public class CityListActivity extends ListActivity {
     }
 
     private void updateCityData(int position) {
-        final CityModel city = new CityModel(this, dataList.get(position).get(KEY_CITY).toString(), position);
-//        WeatherUpdater.updateCurrentWeatherForCityList(this, position, dataList.get(position).get(KEY_CITY).toString());
+        final String cityName = dataList.get(position).get(KEY_CITY).toString();
+        new CityModel(this, cityName, position);
     }
 
     public void updateUI(WeatherDataModel weatherData, int position) {
         Map<String, Object> data = dataList.get(position);
         if (data != null) {
             data.put(KEY_TEMPERATURE, weatherData.getCurrentTemperature(Setting.getTemperatureType(this)));
-            data.put(KEY_DATE, weatherData.getDate());
+            data.put(KEY_DATE, "-"/*weatherData.getDate()*/);
             adapter.notifyDataSetChanged();
         }
     }
