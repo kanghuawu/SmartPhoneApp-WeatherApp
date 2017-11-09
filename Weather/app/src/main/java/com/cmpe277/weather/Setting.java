@@ -59,4 +59,9 @@ public class Setting {
         editor.commit();
     }
 
+    public static void removeCityList(final Activity activity) {
+        final SharedPreferences preferences = activity.getSharedPreferences(PREF_CITY, MODE_PRIVATE);
+        preferences.edit().clear().commit();
+    }
+
 }

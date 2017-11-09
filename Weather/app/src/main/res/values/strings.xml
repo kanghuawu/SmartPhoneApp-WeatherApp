@@ -10,4 +10,5 @@
     <string name="returnHome">Return Home</string>
     <string name="edit">Edit</string>
     <string name="addHere">Add Here</string>
+    <string name="refresh">Refresh</string>
 </resources>

@@ -13,7 +13,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CitySwipeViewActivity extends FragmentActivity {
     public static final String TAG = "Weather";
@@ -38,6 +41,8 @@ public class CitySwipeViewActivity extends FragmentActivity {
         citySwipePagerAdapter.notifyDataSetChanged();
 
         Intent cityListIntent = getIntent();
+        List<Map<String, String>> dataList = (ArrayList<Map<String, String>>) cityListIntent.getSerializableExtra("dataList");
+        Log.i(TAG, "City swip activity receive " + dataList);
         mViewPager.setCurrentItem(cityListIntent.getIntExtra(CityListActivity.KEY_POSITION, 0));
     }
 

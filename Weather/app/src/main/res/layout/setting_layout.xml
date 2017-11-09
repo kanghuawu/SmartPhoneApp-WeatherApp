@@ -20,15 +20,6 @@
         android:textColor="@color/white"
         android:textSize="40sp"/>
 
-
-    <Button
-        android:id="@+id/returnButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:text="@string/returnHome"/>
-
     <RadioGroup
         android:id="@+id/tempGroup"
         android:layout_width="wrap_content"
