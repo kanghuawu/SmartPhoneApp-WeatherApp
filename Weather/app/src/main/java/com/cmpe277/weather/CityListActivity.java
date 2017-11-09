@@ -9,7 +9,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +18,9 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.cmpe277.weather.task.TaskType;
+import com.cmpe277.weather.task.UpdateCurrentWeatherTask;
+import com.cmpe277.weather.task.UpdateLocalizedTimeTask;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
@@ -77,7 +79,6 @@ public class CityListActivity extends ListActivity {
         setUpAdaptors();
         adapter = ordinaryAdaptor;
         setListAdapter(adapter);
-//        initCityList();
         restoreCityList();
         updateCityData();
 
@@ -153,7 +154,23 @@ public class CityListActivity extends ListActivity {
         mLocationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Log.d(TAG, "onLocationChaged(): callback received!");
+
+                Log.d(TAG, "onLocationChanged(): callback received!");
+                String longitude = String.valueOf(location.getLongitude());
+                String latitude = String.valueOf(location.getLatitude());
+                Log.d(TAG, "longitude is " + longitude);
+                Log.d(TAG, "latitude is " + latitude);
+
+//                addCityByLocation(latitude, longitude);
+//                new CityModel(this, latitude, longitude);
+
+//                RequestParams params = new RequestParams();
+//                params.put("lat", latitude);
+//                params.put("lon", longitude);
+//                params.put("appid", WeatherUpdater.APP_ID);
+//                WeatherUpdater.updateCurrentWeather(WeatherController.this, params);
+//                WeatherUpdater.updateHourlyForecast(WeatherController.this, params);
+//                WeatherUpdater.updateDailyForecast(WeatherController.this, params);
             }
 
             @Override
@@ -179,11 +196,14 @@ public class CityListActivity extends ListActivity {
         }
         mLocationManager.requestLocationUpdates(LOCATION_PROVIDER, MIN_TIME, MIN_DISTANCE, mLocationListener);
         Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        String lon = String.valueOf(location.getLongitude());
-        String lat = String.valueOf(location.getLatitude());
-        addCity(KEY_CITY_DUMMY);
-        updateCityData(cityList.size() - 1, lon, lat);
-        Log.i(TAG, "lon: " + lon + " lat: " + lat);
+        if (location != null) {
+            String lon = String.valueOf(location.getLongitude());
+            String lat = String.valueOf(location.getLatitude());
+            addCity(KEY_CITY_DUMMY);
+//            updateCityData(cityList.size() - 1, lon, lat);
+            Log.i(TAG, "lon: " + lon + " lat: " + lat);
+        }
+
     }
 
     private void restoreCityList() {
@@ -294,19 +314,22 @@ public class CityListActivity extends ListActivity {
         }
     }
 
-    private void updateCityData(int position, String lon, String lat) {
-        RequestParams params = new RequestParams();
-        params.put("lon", lon);
-        params.put("lat", lat);
-        WeatherUpdater.updateCurrentWeatherForCityList(this, params, position);
-    }
+//    private void updateCityData(int position, String lon, String lat) {
+//        RequestParams params = new RequestParams();
+//        params.put("lon", lon);
+//        params.put("lat", lat);
+//        CityModel cityModel = new CityModel(cityName, position);
+//        final CityController controller = new CityController(cityModel, this);
+//        WeatherUpdater.updateCurrentWeatherForCityList(controller, CityListActivity.this, position, params);
+//    }
 
     private void updateCityData(int position) {
-        Map<String, Object> data = dataList.get(position);
-        String city = data.get(KEY_CITY).toString();
-        RequestParams params = new RequestParams();
-        params.put("q", city);
-        WeatherUpdater.updateCurrentWeatherForCityList(this, params, position);
+        final String cityName = dataList.get(position).get(KEY_CITY).toString();
+        CityModel cityModel = new CityModel(cityName, position);
+        final CityController controller = new CityController(cityModel, this);
+        controller.addTask(new UpdateCurrentWeatherTask(controller, TaskType.CITY_LIST));
+        controller.addTask(new UpdateLocalizedTimeTask(controller, TaskType.CITY_LIST));
+        controller.executeNext();
     }
 
     public void updateUI(WeatherDataModel weatherData, int position) {
@@ -327,14 +350,18 @@ public class CityListActivity extends ListActivity {
         if (data != null) {
             data.put(KEY_TEMPERATURE, weatherData.getCurrentTemperature(Setting.getTemperatureType(this)));
             data.put(KEY_DATE, weatherData.getDate());
-
+            data.put(KEY_DATE, "-");
+            adapter.notifyDataSetChanged();
         }
         adapter.notifyDataSetChanged();
     }
 
-    private void initCityList() {
-        addCity("Taipei");
-        addCity("Tokyo");
-        addCity("San Francisco");
+    public void updateUITime(final CityModel cityModel) {
+        Map<String, Object> data = dataList.get(cityModel.getPosition());
+        if (data != null) {
+            data.put(KEY_DATE, cityModel.getFormattedShortDate());
+            adapter.notifyDataSetChanged();
+        }
     }
+
 }
