@@ -26,7 +26,7 @@ public class Setting {
         final SharedPreferences preferences = activity.getSharedPreferences(PREF_TEMPERATURE_TYPE, MODE_PRIVATE);
         preferences.edit()
                 .putInt(PREF_TEMPERATURE_TYPE, type.ordinal())
-                .commit();
+                .apply();
 
     }
 
@@ -45,7 +45,7 @@ public class Setting {
         int size = preferences.getInt(PREF_CITY + "size", 0);
         editor.putInt(PREF_CITY + "size", size + 1);
         editor.putString(PREF_CITY + size, city);
-        editor.commit();
+        editor.apply();
     }
 
     public static void addCityList(final Activity activity, final List<String> cities) {
@@ -56,12 +56,12 @@ public class Setting {
         for (int i = 0; i < cities.size(); i++) {
             editor.putString(PREF_CITY + i, cities.get(i));
         }
-        editor.commit();
+        editor.apply();
     }
 
     public static void removeCityList(final Activity activity) {
         final SharedPreferences preferences = activity.getSharedPreferences(PREF_CITY, MODE_PRIVATE);
-        preferences.edit().clear().commit();
+        preferences.edit().clear().apply();
     }
 
 }

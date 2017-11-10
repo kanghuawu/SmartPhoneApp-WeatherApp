@@ -2,12 +2,12 @@ package com.cmpe277.weather;
 
 import android.Manifest;
 import android.app.ListActivity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -25,7 +25,6 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.loopj.android.http.RequestParams;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,13 +52,12 @@ public class CityListActivity extends ListActivity {
     Button editButton;
     Button addHereButton;
     Button refreshButton;
-    LocationManager mLocationManager;
-    LocationListener mLocationListener;
-    String LOCATION_PROVIDER = LocationManager.GPS_PROVIDER;
     final int REQUEST_CODE = 123;
-    final long MIN_TIME = 5000;
-    final float MIN_DISTANCE = 1000;
     boolean isEditing = false;
+    BroadcastReceiver mBroadcastReceiver;
+    String currentCity = null;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,19 +81,22 @@ public class CityListActivity extends ListActivity {
         updateCityData();
 
         // auto complete
-        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                addCity(place.getName().toString());
-                Log.i(TAG, String.valueOf(place.getName().toString()));
-            }
-            @Override
-            public void onError(Status status) {
-                Log.i(TAG, "An error occurred: " + status);
-            }
-        });
+        createAutocomplete();
+        runtimePermissions();
+        setupButtons();
+    }
+
+    private boolean runtimePermissions() {
+        if (Build.VERSION.SDK_INT >= 23 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+            return true;
+        }
+        return false;
+    }
+
+    private void setupButtons() {
 
         // setting button
         settingButton = (Button) findViewById(R.id.setting);
@@ -135,7 +136,10 @@ public class CityListActivity extends ListActivity {
         addHereButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addCurrentLocation();
+                if (runtimePermissions()) {
+                    return;
+                }
+                addCity(currentCity);
             }
         });
 
@@ -146,64 +150,42 @@ public class CityListActivity extends ListActivity {
                 updateCityData();
             }
         });
-
     }
 
-    private void addCurrentLocation() {
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mLocationListener = new LocationListener() {
+    private void createAutocomplete() {
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
-            public void onLocationChanged(Location location) {
-
-                Log.d(TAG, "onLocationChanged(): callback received!");
-                String longitude = String.valueOf(location.getLongitude());
-                String latitude = String.valueOf(location.getLatitude());
-                Log.d(TAG, "longitude is " + longitude);
-                Log.d(TAG, "latitude is " + latitude);
-
-//                addCityByLocation(latitude, longitude);
-//                new CityModel(this, latitude, longitude);
-
-//                RequestParams params = new RequestParams();
-//                params.put("lat", latitude);
-//                params.put("lon", longitude);
-//                params.put("appid", WeatherUpdater.APP_ID);
-//                WeatherUpdater.updateCurrentWeather(WeatherController.this, params);
-//                WeatherUpdater.updateHourlyForecast(WeatherController.this, params);
-//                WeatherUpdater.updateDailyForecast(WeatherController.this, params);
+            public void onPlaceSelected(Place place) {
+                addCity(place.getName().toString());
+                Log.i(TAG, String.valueOf(place.getName().toString()));
             }
-
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d(TAG, "onStatusChanged(): callback received!");
+            public void onError(Status status) {
+                Log.i(TAG, "An error occurred: " + status);
             }
+        });
+    }
 
-            @Override
-            public void onProviderEnabled(String provider) {
-                Log.d(TAG, "onProviderEnabled(): callback received!");
-            }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        if(requestCode == 100){
+//            if( grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+//                return;
+//            }else {
+//                runtimePermissions();
+//            }
+//        }
+//    }
 
-            @Override
-            public void onProviderDisabled(String provider) {
-                Log.d(TAG, "onProviderDisabled(): callback received!");
-            }
-        };
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+    private void addCurrentLocation(String city) {
+        Log.i(TAG, "Current city is " + city);
+        if (city == null) {
             return;
         }
-        mLocationManager.requestLocationUpdates(LOCATION_PROVIDER, MIN_TIME, MIN_DISTANCE, mLocationListener);
-        Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (location != null) {
-            String lon = String.valueOf(location.getLongitude());
-            String lat = String.valueOf(location.getLatitude());
-            addCity(KEY_CITY_DUMMY);
-//            updateCityData(cityList.size() - 1, lon, lat);
-            Log.i(TAG, "lon: " + lon + " lat: " + lat);
-        }
-
+        Log.i(TAG, "Adding city " + city);
     }
 
     private void restoreCityList() {
@@ -218,7 +200,27 @@ public class CityListActivity extends ListActivity {
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "Calling onResume");
+        Intent localServiceIntent = new Intent(getApplicationContext(), LocalService.class);
+        startService(localServiceIntent);
         updateCityData();
+        if(mBroadcastReceiver == null){
+            mBroadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    currentCity = intent.getExtras().getString("currentCity");
+                    Log.i(TAG, currentCity);
+                }
+            };
+        }
+        registerReceiver(mBroadcastReceiver, new IntentFilter("locationUpdate"));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mBroadcastReceiver != null){
+            unregisterReceiver(mBroadcastReceiver);
+        }
     }
 
     private void setUpAdaptors() {
@@ -251,6 +253,9 @@ public class CityListActivity extends ListActivity {
 
     private void addCity(String city) {
         Log.i(TAG, "Adding city " + city);
+        if (city == null) {
+            return;
+        }
         if (cityList.contains(city)) {
             showCityAdded(city);
             return;
@@ -262,6 +267,7 @@ public class CityListActivity extends ListActivity {
         mCity.put(KEY_TEMPERATURE, "--");
         dataList.add(mCity);
         adapter.notifyDataSetChanged();
+        updateCityData();
         return;
     }
 

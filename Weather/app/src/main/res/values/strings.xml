@@ -11,4 +11,6 @@
     <string name="edit">Edit</string>
     <string name="addHere">Add Here</string>
     <string name="refresh">Refresh</string>
+    <string name="local_service_started">Starting GPS</string>
+    <string name="local_service_stopped">Stopping GPS</string>
 </resources>

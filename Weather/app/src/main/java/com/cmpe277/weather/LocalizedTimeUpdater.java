@@ -15,7 +15,7 @@ import cz.msebera.android.httpclient.Header;
 public class LocalizedTimeUpdater {
 
     private static final String API_GOOGLE_TIMEZONE = "https://maps.googleapis.com/maps/api/timezone/json";
-
+    public static final String TAG = "Weather";
     private static final String PARAM_API_KEY = "key";
     private static final String PARAM_LOCATION = "location";
     private static final String PARAM_TIMESTAMP = "timestamp";
@@ -55,8 +55,8 @@ public class LocalizedTimeUpdater {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.e("Weather App", "Fail " + throwable.toString());
-                Log.e("Weather App", "Status code " + statusCode);
+                Log.e(TAG, "Fail " + throwable.toString());
+                Log.e(TAG, "Status code " + statusCode);
             }
         });
     }
@@ -78,8 +78,8 @@ public class LocalizedTimeUpdater {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.e("Weather App", "Fail " + throwable.toString());
-                Log.e("Weather App", "Status code " + statusCode);
+                Log.e(TAG, "Fail " + throwable.toString());
+                Log.e(TAG, "Status code " + statusCode);
             }
         });
     }
