@@ -13,7 +13,7 @@ import cz.msebera.android.httpclient.Header;
 
 
 public class WeatherUpdater {
-
+    public static final String TAG = "Weather";
     /**
      * OpenWeather API URL
      */
@@ -48,7 +48,7 @@ public class WeatherUpdater {
         client.get(API_FORECAST_HOURLY, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                Log.i("Weather App", "Success! JSON: " + response.toString());
+                Log.i(TAG, "Success! JSON: " + response.toString());
                 WeatherDataModel weatherData = null;
                 try {
                     weatherData = WeatherDataModel.hourlyForecastFromJson(response);
@@ -60,8 +60,8 @@ public class WeatherUpdater {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.e("Weather App", "Fail " + throwable.toString());
-                Log.e("Weather App", "Status code " + statusCode);
+                Log.e(TAG, "Fail " + throwable.toString());
+                Log.e(TAG, "Status code " + statusCode);
             }
         });
     }
@@ -111,7 +111,8 @@ public class WeatherUpdater {
         });
     }
 
-    public static void updateCurrentWeatherForCityList(final CityController controller, final CityListActivity cityList, final int position, final RequestParams params) {
+    public static void updateCurrentWeatherForCityList(final CityController controller, final CityListActivity cityList,
+                                                       final int position, final RequestParams params) {
         AsyncHttpClient client = new AsyncHttpClient();
         client.get(API_WEATHER, params, new JsonHttpResponseHandler() {
             @Override
@@ -127,6 +128,7 @@ public class WeatherUpdater {
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 Log.e("Weather App", "Fail " + throwable.toString());
                 Log.e("Weather App", "Status code " + statusCode);
+                Log.e(TAG, errorResponse.toString());
             }
         });
     }
@@ -138,11 +140,12 @@ public class WeatherUpdater {
         return params;
     }
 
-//    public static RequestParams byParamsLocation(String latitude, String longitude) {
-//        RequestParams params = new RequestParams();
-//        params.put(PARAM_LAT, latitude);
-//        params.put(PARAM_LON, longitude);
-//        params.put(PARAM_APPID, APP_ID);
-//        return params;
-//    }
+    public static RequestParams byParamsLocation(String latitude, String longitude) {
+        Log.i(TAG, "byParamsLocation getting " + latitude + ", " + longitude);
+        RequestParams params = new RequestParams();
+        params.put(PARAM_LAT, latitude);
+        params.put(PARAM_LON, longitude);
+        params.put(PARAM_APPID, APP_ID);
+        return params;
+    }
 }

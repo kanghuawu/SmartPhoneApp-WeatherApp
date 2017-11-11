@@ -15,10 +15,10 @@ public class UpdateForecastTask extends Task {
         if (taskType.equals(TaskType.CITY_VIEW)) {
             WeatherUpdater.updateHourlyForecast(controller.getSingleCityFragment(),
                     controller.getCityModel(),
-                    WeatherUpdater.byParamsCityName(controller.getCityModel().getCityName()));
+                    WeatherUpdater.byParamsLocation(controller.getCityModel().getLatitude(), controller.getCityModel().getLongitude()));
             WeatherUpdater.updateDailyForecast(controller.getSingleCityFragment(),
                     controller.getCityModel(),
-                    WeatherUpdater.byParamsCityName(controller.getCityModel().getCityName()));
+                    WeatherUpdater.byParamsLocation(controller.getCityModel().getLatitude(), controller.getCityModel().getLongitude()));
         }
     }
 }

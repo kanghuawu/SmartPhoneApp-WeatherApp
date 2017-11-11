@@ -19,7 +19,7 @@ public class UpdateCurrentWeatherTask extends Task {
                 WeatherUpdater.updateCurrentWeatherForCityList(controller,
                         controller.getCityListActivity(),
                         controller.getCityModel().getPosition(),
-                        WeatherUpdater.byParamsCityName(controller.getCityModel().getCityName()));
+                        WeatherUpdater.byParamsLocation(controller.getCityModel().getLatitude(), controller.getCityModel().getLongitude()));
             }
         } else if (taskType.equals(TaskType.CITY_VIEW)) {
             if (controller.getCityModel().needToRefresh()) {
@@ -29,7 +29,7 @@ public class UpdateCurrentWeatherTask extends Task {
                         controller,
                         controller.getSingleCityFragment(),
                         controller.getCityModel().getPosition(),
-                        WeatherUpdater.byParamsCityName(controller.getCityModel().getCityName()));
+                        WeatherUpdater.byParamsLocation(controller.getCityModel().getLatitude(), controller.getCityModel().getLongitude()));
             }
         }
 

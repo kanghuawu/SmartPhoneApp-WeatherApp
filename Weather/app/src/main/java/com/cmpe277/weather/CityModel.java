@@ -21,6 +21,18 @@ public class CityModel implements Serializable {
     private String latitude, longitude;
     private TimeZone timeZone;
 
+    public CityModel(final String cityName, String latitude, String longitude, int position) {
+        this.cityName = cityName;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.position = position;
+    }
+
+    public CityModel(final String cityName, String latitude, String longitude) {
+        this.cityName = cityName;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 
     public CityModel(final String cityName, int position) {
         this.cityName = cityName;
@@ -50,6 +62,10 @@ public class CityModel implements Serializable {
     public void setLatAndLon(String lat, String lon) {
         this.latitude = lat;
         this.longitude = lon;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
     }
 
     public String getLatitude() {
@@ -95,5 +111,10 @@ public class CityModel implements Serializable {
 
     public long getCurrentTimestamp() {
         return currentTimestamp;
+    }
+
+    @Override
+    public String toString() {
+        return cityName + ", " + latitude + ", " + longitude + ", " + position;
     }
 }

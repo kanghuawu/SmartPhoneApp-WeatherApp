@@ -13,4 +13,6 @@
     <string name="refresh">Refresh</string>
     <string name="local_service_started">Starting GPS</string>
     <string name="local_service_stopped">Stopping GPS</string>
+    <string name="here"></string>
+    <string name="youarehere">You are here!</string>
 </resources>

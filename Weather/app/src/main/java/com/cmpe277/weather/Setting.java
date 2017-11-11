@@ -63,5 +63,4 @@ public class Setting {
         final SharedPreferences preferences = activity.getSharedPreferences(PREF_CITY, MODE_PRIVATE);
         preferences.edit().clear().apply();
     }
-
 }

@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
@@ -37,26 +38,22 @@ public class CityListActivity extends ListActivity {
     public static final String KEY_CITY = "city";
     public static final String KEY_DATE = "date";
     public static final String KEY_TEMPERATURE = "temperature";
-    public static final String KEY_CITY_DUMMY = "Searching";
     public static final String KEY_POSITION = "position";
+    public static final String KEY_LAT = "lat";
+    public static final String KEY_LON = "lon";
 
-    final String[] KEY_ITEMS = new String[] {KEY_CITY, KEY_DATE, KEY_TEMPERATURE};
-    final int[] KEY_ITEMS_LAYOUT = new int[] {R.id.textCity, R.id.textDate, R.id.textTemperature};
-
+    final String[] KEY_ITEMS = new String[]{KEY_CITY, KEY_DATE, KEY_TEMPERATURE};
+    final int[] KEY_ITEMS_LAYOUT = new int[]{R.id.textCity, R.id.textDate, R.id.textTemperature};
+    final int REQUEST_CODE = 123;
     SimpleAdapter adapter;
     SimpleAdapter ordinaryAdaptor;
     SimpleAdapter editAdapter;
     List<Map<String, Object>> dataList;
-    List<String> cityList;
-    Button settingButton;
-    Button editButton;
-    Button addHereButton;
-    Button refreshButton;
-    final int REQUEST_CODE = 123;
+    Button settingButton, editButton, addHereButton, refreshButton;
     boolean isEditing = false;
     BroadcastReceiver mBroadcastReceiver;
-    String currentCity = null;
-
+    static CityModel currentCity = null;
+    Intent localServiceIntent;
 
 
     @Override
@@ -66,12 +63,11 @@ public class CityListActivity extends ListActivity {
         setContentView(R.layout.city_list_layout);
 
         if (savedInstanceState != null) {
-            Log.i(TAG,"savedInstanceState is not null");
+            Log.i(TAG, "savedInstanceState is not null");
             dataList = (List<Map<String, Object>>) savedInstanceState.getSerializable("dataList");
-            cityList = savedInstanceState.getStringArrayList("cityList");
         } else {
+            Log.i(TAG, "Creating new dataList");
             dataList = new ArrayList<>();
-            cityList = new ArrayList<>();
         }
 
         setUpAdaptors();
@@ -82,15 +78,77 @@ public class CityListActivity extends ListActivity {
 
         // auto complete
         createAutocomplete();
-        runtimePermissions();
         setupButtons();
+        if (!runtimePermissions()) {
+            localServiceIntent = new Intent(getApplicationContext(), LocalService.class);
+            startService(localServiceIntent);
+        }
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "Calling onResume");
+
+        if (mBroadcastReceiver == null) {
+            mBroadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    currentCity = (CityModel) intent.getExtras().getSerializable("currentCity");
+                    Log.i(TAG, String.valueOf(currentCity));
+                }
+            };
+        }
+        registerReceiver(mBroadcastReceiver, new IntentFilter("locationUpdate"));
+        updateCityData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "CityListActivity calling onDestroy");
+        if (mBroadcastReceiver != null) {
+            unregisterReceiver(mBroadcastReceiver);
+        }
+        Setting.removeCityList(CityListActivity.this);
+        List<String> cityList = new ArrayList<>();
+        for (Map<String, Object> city : dataList) {
+            String cityNameLatLon = city.get(KEY_CITY).toString() + ","
+                    + city.get(KEY_LAT).toString() + ","
+                    + city.get(KEY_LON).toString();
+            cityList.add(cityNameLatLon);
+        }
+        Setting.addCityList(CityListActivity.this, cityList);
+        stopService(localServiceIntent);
+    }
+
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        if (!isEditing) {
+            super.onListItemClick(l, v, position, id);
+            Log.i(TAG, "Item " + position + " clicked");
+            Intent swipeIntent = new Intent(CityListActivity.this, CitySwipeViewActivity.class);
+            swipeIntent.putExtra(KEY_POSITION, position);
+            swipeIntent.putExtra("dataList", (Serializable) dataList);
+            swipeIntent.putExtra("currentCity", (Serializable) currentCity);
+            startActivity(swipeIntent);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "Calling onSaveInstanceState");
+        outState.putSerializable("dataList", (Serializable) dataList);
+        super.onSaveInstanceState(outState);
     }
 
     private boolean runtimePermissions() {
-        if (Build.VERSION.SDK_INT >= 23 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        if (Build.VERSION.SDK_INT >= 23 &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
             return true;
         }
         return false;
@@ -99,7 +157,7 @@ public class CityListActivity extends ListActivity {
     private void setupButtons() {
 
         // setting button
-        settingButton = (Button) findViewById(R.id.setting);
+        settingButton = findViewById(R.id.setting);
         settingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -110,7 +168,7 @@ public class CityListActivity extends ListActivity {
         });
 
         // edit button
-        editButton = (Button) findViewById(R.id.edit);
+        editButton = findViewById(R.id.edit);
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -139,11 +197,22 @@ public class CityListActivity extends ListActivity {
                 if (runtimePermissions()) {
                     return;
                 }
-                addCity(currentCity);
+                if (localServiceIntent == null) {
+                    localServiceIntent = new Intent(getApplicationContext(), LocalService.class);
+                    startService(localServiceIntent);
+                }
+                if (currentCity == null) {
+                    Log.i(TAG, "Current city is null");
+                    return;
+                }
+                Log.i(TAG, String.valueOf(currentCity));
+                addCity(currentCity.getCityName(),
+                        currentCity.getLatitude(),
+                        currentCity.getLongitude());
             }
         });
 
-        refreshButton = (Button) findViewById(R.id.refreshButton);
+        refreshButton = findViewById(R.id.refreshButton);
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -158,9 +227,12 @@ public class CityListActivity extends ListActivity {
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                addCity(place.getName().toString());
+                addCity(place.getName().toString(),
+                        String.valueOf(place.getLatLng().latitude),
+                        String.valueOf(place.getLatLng().longitude));
                 Log.i(TAG, String.valueOf(place.getName().toString()));
             }
+
             @Override
             public void onError(Status status) {
                 Log.i(TAG, "An error occurred: " + status);
@@ -168,58 +240,12 @@ public class CityListActivity extends ListActivity {
         });
     }
 
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//        if(requestCode == 100){
-//            if( grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
-//                return;
-//            }else {
-//                runtimePermissions();
-//            }
-//        }
-//    }
-
-    private void addCurrentLocation(String city) {
-        Log.i(TAG, "Current city is " + city);
-        if (city == null) {
-            return;
-        }
-        Log.i(TAG, "Adding city " + city);
-    }
-
     private void restoreCityList() {
-        Setting.removeCityList(CityListActivity.this);
-        for (String city : Setting.getCityList(CityListActivity.this)) {
-//            addCity(city);
-            Log.i(TAG, "Restoring " + city);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.i(TAG, "Calling onResume");
-        Intent localServiceIntent = new Intent(getApplicationContext(), LocalService.class);
-        startService(localServiceIntent);
-        updateCityData();
-        if(mBroadcastReceiver == null){
-            mBroadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    currentCity = intent.getExtras().getString("currentCity");
-                    Log.i(TAG, currentCity);
-                }
-            };
-        }
-        registerReceiver(mBroadcastReceiver, new IntentFilter("locationUpdate"));
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(mBroadcastReceiver != null){
-            unregisterReceiver(mBroadcastReceiver);
+        if (dataList == null || dataList.size() == 0) {
+            for (String city : Setting.getCityList(CityListActivity.this)) {
+                String[] cityInfo =  city.split(",");
+                addCity(cityInfo[0], cityInfo[1], cityInfo[2]);
+            }
         }
     }
 
@@ -251,18 +277,21 @@ public class CityListActivity extends ListActivity {
         Toast.makeText(CityListActivity.this, city + " already added!", Toast.LENGTH_SHORT).show();
     }
 
-    private void addCity(String city) {
-        Log.i(TAG, "Adding city " + city);
+    private void addCity(String city, String lat, String lon) {
+        Log.i(TAG, "Adding city " + city + ", lat: " + lat + ", lon: " + lon);
         if (city == null) {
             return;
         }
-        if (cityList.contains(city)) {
-            showCityAdded(city);
-            return;
+        for (Map<String, Object> m : dataList) {
+            if (m.get(KEY_CITY).equals(city)) {
+                showCityAdded(city);
+                return;
+            }
         }
-        cityList.add(city);
         Map<String, Object> mCity = new HashMap<>();
         mCity.put(KEY_CITY, city);
+        mCity.put(KEY_LAT, lat);
+        mCity.put(KEY_LON, lon);
         mCity.put(KEY_DATE, "--:--");
         mCity.put(KEY_TEMPERATURE, "--");
         dataList.add(mCity);
@@ -272,7 +301,6 @@ public class CityListActivity extends ListActivity {
     }
 
     private void removeCity(int position) {
-        cityList.remove(position);
         dataList.remove(position);
         adapter.notifyDataSetChanged();
     }
@@ -286,52 +314,17 @@ public class CityListActivity extends ListActivity {
         setListAdapter(adapter);
     }
 
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        if (!isEditing) {
-            super.onListItemClick(l, v, position, id);
-            Log.i(TAG, "Item " + position + " clicked");
-            Intent swipeIntent = new Intent(CityListActivity.this, CitySwipeViewActivity.class);
-            swipeIntent.putExtra(KEY_POSITION, position);
-            swipeIntent.putExtra("dataList", (Serializable) dataList);
-            Setting.addCityList(CityListActivity.this, cityList);
-            startActivity(swipeIntent);
-        }
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle state) {
-        Log.i(TAG, "Calling onRestoreInstanceState");
-        dataList = (List<Map<String, Object>>) state.getSerializable("dataList");
-        cityList = state.getStringArrayList("cityList");
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.i(TAG, "Calling onSaveInstanceState");
-        outState.putSerializable("dataList", (Serializable) dataList);
-        outState.putStringArrayList("cityList", (ArrayList<String>) cityList);
-    }
-
     private void updateCityData() {
-        for(int position=0; position<dataList.size(); position++) {
+        for (int position = 0; position < dataList.size(); position++) {
             updateCityData(position);
         }
     }
 
-//    private void updateCityData(int position, String lon, String lat) {
-//        RequestParams params = new RequestParams();
-//        params.put("lon", lon);
-//        params.put("lat", lat);
-//        CityModel cityModel = new CityModel(cityName, position);
-//        final CityController controller = new CityController(cityModel, this);
-//        WeatherUpdater.updateCurrentWeatherForCityList(controller, CityListActivity.this, position, params);
-//    }
-
     private void updateCityData(int position) {
-        final String cityName = dataList.get(position).get(KEY_CITY).toString();
-        CityModel cityModel = new CityModel(cityName, position);
+        CityModel cityModel = new CityModel(dataList.get(position).get(KEY_CITY).toString(),
+                dataList.get(position).get(KEY_LAT).toString(),
+                dataList.get(position).get(KEY_LON).toString(),
+                position);
         final CityController controller = new CityController(cityModel, this);
         controller.addTask(new UpdateCurrentWeatherTask(controller, TaskType.CITY_LIST));
         controller.addTask(new UpdateLocalizedTimeTask(controller, TaskType.CITY_LIST));
@@ -342,24 +335,13 @@ public class CityListActivity extends ListActivity {
         String city = weatherData.getCity();
         Log.i(TAG, "Updating UI " + city + " " + position);
         Map<String, Object> data = dataList.get(position);
-        if (data.get(KEY_CITY).equals(KEY_CITY_DUMMY)) {
-            if (cityList.contains(city)) {
-                showCityAdded(city);
-                cityList.remove(position);
-                dataList.remove(position);
-                adapter.notifyDataSetChanged();
-                return;
-            }
-            cityList.set(position, city);
-            data.put(KEY_CITY, city);
-        }
         if (data != null) {
             data.put(KEY_TEMPERATURE, weatherData.getCurrentTemperature(Setting.getTemperatureType(this)));
             data.put(KEY_DATE, weatherData.getDate());
             data.put(KEY_DATE, "-");
             adapter.notifyDataSetChanged();
+            adapter.notifyDataSetChanged();
         }
-        adapter.notifyDataSetChanged();
     }
 
     public void updateUITime(final CityModel cityModel) {
